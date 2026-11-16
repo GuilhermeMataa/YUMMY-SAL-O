@@ -1,0 +1,293 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "Private salon reservation record including client contact details and owner confirmation.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Booking code and document ID."
+        },
+        "guestId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Client browser guest identifier."
+        },
+        "clientUid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase Auth UID when signed in with Google, or empty string for guest bookings."
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Client full name."
+        },
+        "customerPhone": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 24,
+          "description": "Client WhatsApp number."
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400,
+          "description": "Optional message from the client to the salon owner."
+        },
+        "serviceId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Identifier of the selected service."
+        },
+        "serviceName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Display name of the selected service."
+        },
+        "specialistId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Identifier of the selected specialist."
+        },
+        "specialistName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Display name of the selected specialist."
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Appointment date in YYYY-MM-DD format."
+        },
+        "time": {
+          "type": "string",
+          "maxLength": 5,
+          "pattern": "^\\d{2}:\\d{2}$",
+          "description": "Appointment time in HH:MM format."
+        },
+        "durationMin": {
+          "type": "number",
+          "description": "Estimated service duration in minutes."
+        },
+        "totalBrl": {
+          "type": "number",
+          "description": "Service price in BRL."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "cancelled"],
+          "description": "Current reservation status."
+        },
+        "confirmationMessage": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Confirmation or cancellation message sent by the owner."
+        },
+        "confirmedAt": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "ISO timestamp string when owner confirmed or updated."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "id",
+        "guestId",
+        "clientUid",
+        "customerName",
+        "customerPhone",
+        "serviceId",
+        "serviceName",
+        "specialistId",
+        "specialistName",
+        "date",
+        "time",
+        "durationMin",
+        "totalBrl",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BookingStatus": {
+      "title": "BookingStatus",
+      "description": "Zero-PII status mirror allowing guest clients to observe owner confirmation updates by exact booking ID.",
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "serviceName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "specialistName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "time": {
+          "type": "string",
+          "maxLength": 5,
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "durationMin": {
+          "type": "number"
+        },
+        "totalBrl": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "cancelled"]
+        },
+        "confirmationMessage": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "confirmedAt": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "bookingId",
+        "serviceName",
+        "specialistName",
+        "date",
+        "time",
+        "durationMin",
+        "totalBrl",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SlotLock": {
+      "title": "SlotLock",
+      "description": "Zero-PII time slot availability record per date and specialist.",
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "specialistId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "time": {
+          "type": "string",
+          "maxLength": 5,
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "cancelled"]
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["bookingId", "date", "specialistId", "time", "status", "updatedAt"]
+    },
+    "SalonSettings": {
+      "title": "SalonSettings",
+      "description": "Public salon configuration such as salon WhatsApp number.",
+      "type": "object",
+      "properties": {
+        "ownerWhatsApp": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["ownerWhatsApp", "updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized salon owner identity record.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Full reservation records containing client contact details, accessible to the owner and the signed-in client owner."
+    },
+    "/booking_statuses/{bookingId}": {
+      "schema": { "$ref": "#/entities/BookingStatus" },
+      "description": "Zero-PII status mirror so guest clients can receive owner confirmations in real time by booking code."
+    },
+    "/slot_locks/{slotKey}": {
+      "schema": { "$ref": "#/entities/SlotLock" },
+      "description": "Zero-PII slot availability lock preventing double-booking."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SalonSettings" },
+      "description": "Salon configuration document at settings/salon."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Authorized admin UIDs."
+    }
+  }
+}

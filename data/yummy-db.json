@@ -1,0 +1,50 @@
+{
+  "users": [],
+  "bookings": [
+    {
+      "id": "AGD-104A",
+      "userId": "seed_client_1",
+      "customerName": "Helena Vasconcelos",
+      "customerEmail": "helena.vasconcelos@exemplo.com.br",
+      "customerPhone": "(11) 98421-3309",
+      "notes": "Prefere iluminação sutil sem descoloração na raiz.",
+      "serviceId": "srv-morena-iluminada",
+      "serviceName": "Iluminação Botânica & Matização",
+      "specialistId": "esp-lucas",
+      "specialistName": "Lucas Ferreira",
+      "date": "2026-11-17",
+      "time": "11:00",
+      "durationMin": 150,
+      "totalBrl": 540,
+      "status": "pending",
+      "createdAt": "2026-11-15T22:32:05.682Z"
+    },
+    {
+      "id": "AGD-103B",
+      "userId": "seed_client_2",
+      "customerName": "Carolina Nogueira",
+      "customerEmail": "carolina.nogueira@exemplo.com.br",
+      "customerPhone": "(11) 99104-7782",
+      "serviceId": "srv-corte-visagismo",
+      "serviceName": "Corte Visagista & Finalização",
+      "specialistId": "esp-sofia",
+      "specialistName": "Sofia Mendes",
+      "date": "2026-11-17",
+      "time": "15:00",
+      "durationMin": 60,
+      "totalBrl": 220,
+      "status": "confirmed",
+      "confirmationMessage": "Olá Carolina, sua reserva de Corte Visagista & Finalização com Sofia Mendes foi confirmada. Esperamos você!",
+      "confirmedAt": "2026-11-15T21:37:05.682Z",
+      "createdAt": "2026-11-15T21:07:05.682Z"
+    }
+  ],
+  "ownerAccount": {
+    "login": "admin",
+    "passwordSalt": "50f7b034e152fa8a1a06c67846249c41",
+    "passwordHash": "9d492abc24df4d3dfb5bccf1582c0023bb49a1f44f47d7dab709ec94522de4ffe264a79d9d076984ca9a31cd95963468cf45125010b79d647f5d69e73ff35acb",
+    "isDefaultPassword": true,
+    "updatedAt": "2026-11-15T23:07:05.682Z"
+  },
+  "ownerWhatsApp": ""
+}

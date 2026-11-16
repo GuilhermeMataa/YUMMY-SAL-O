@@ -1,0 +1,8 @@
+{
+  "name": "Yummy Salão",
+  "description": "Estúdio de beleza e cuidados botânicos com agendamento online e painel do dono protegido por login e senha para confirmação de reservas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,306 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default-deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'guizaodofort@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidBookingData(data) {
+      return data.keys().hasAll([
+          'id', 'guestId', 'clientUid', 'customerName', 'customerPhone',
+          'serviceId', 'serviceName', 'specialistId', 'specialistName',
+          'date', 'time', 'durationMin', 'totalBrl', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'guestId', 'clientUid', 'customerName', 'customerPhone',
+          'notes', 'serviceId', 'serviceName', 'specialistId', 'specialistName',
+          'date', 'time', 'durationMin', 'totalBrl', 'status',
+          'confirmationMessage', 'confirmedAt', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id.size() <= 32
+        && isValidId(data.guestId)
+        && data.guestId.size() <= 64
+        && data.clientUid is string
+        && data.clientUid.size() <= 128
+        && data.customerName is string
+        && data.customerName.size() >= 2
+        && data.customerName.size() <= 80
+        && data.customerPhone is string
+        && data.customerPhone.size() >= 8
+        && data.customerPhone.size() <= 24
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 400))
+        && isValidId(data.serviceId)
+        && data.serviceId.size() <= 64
+        && data.serviceName is string
+        && data.serviceName.size() >= 2
+        && data.serviceName.size() <= 120
+        && isValidId(data.specialistId)
+        && data.specialistId.size() <= 64
+        && data.specialistName is string
+        && data.specialistName.size() >= 2
+        && data.specialistName.size() <= 80
+        && data.date is string
+        && data.date.size() == 10
+        && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.time is string
+        && data.time.size() == 5
+        && data.time.matches('^\\d{2}:\\d{2}$')
+        && data.durationMin is int
+        && data.durationMin > 0
+        && data.durationMin <= 600
+        && data.totalBrl is number
+        && data.totalBrl >= 0
+        && data.totalBrl <= 50000
+        && data.status in ['pending', 'confirmed', 'cancelled']
+        && (!('confirmationMessage' in data) || (data.confirmationMessage is string && data.confirmationMessage.size() <= 500))
+        && (!('confirmedAt' in data) || (data.confirmedAt is string && data.confirmedAt.size() <= 40))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBookingStatus(data) {
+      return data.keys().hasAll([
+          'bookingId', 'serviceName', 'specialistName', 'date', 'time',
+          'durationMin', 'totalBrl', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'bookingId', 'serviceName', 'specialistName', 'date', 'time',
+          'durationMin', 'totalBrl', 'status', 'confirmationMessage',
+          'confirmedAt', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.bookingId)
+        && data.bookingId.size() <= 32
+        && data.serviceName is string
+        && data.serviceName.size() >= 2
+        && data.serviceName.size() <= 120
+        && data.specialistName is string
+        && data.specialistName.size() >= 2
+        && data.specialistName.size() <= 80
+        && data.date is string
+        && data.date.size() == 10
+        && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.time is string
+        && data.time.size() == 5
+        && data.time.matches('^\\d{2}:\\d{2}$')
+        && data.durationMin is int
+        && data.durationMin > 0
+        && data.durationMin <= 600
+        && data.totalBrl is number
+        && data.totalBrl >= 0
+        && data.totalBrl <= 50000
+        && data.status in ['pending', 'confirmed', 'cancelled']
+        && (!('confirmationMessage' in data) || (data.confirmationMessage is string && data.confirmationMessage.size() <= 500))
+        && (!('confirmedAt' in data) || (data.confirmedAt is string && data.confirmedAt.size() <= 40))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSlotLock(data) {
+      return data.keys().hasAll(['bookingId', 'date', 'specialistId', 'time', 'status', 'updatedAt'])
+        && data.keys().hasOnly(['bookingId', 'date', 'specialistId', 'time', 'status', 'updatedAt'])
+        && isValidId(data.bookingId)
+        && data.bookingId.size() <= 32
+        && data.date is string
+        && data.date.size() == 10
+        && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && isValidId(data.specialistId)
+        && data.specialistId.size() <= 64
+        && data.time is string
+        && data.time.size() == 5
+        && data.time.matches('^\\d{2}:\\d{2}$')
+        && data.status in ['active', 'cancelled']
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSalonSettings(data) {
+      return data.keys().hasAll(['ownerWhatsApp', 'updatedAt'])
+        && data.keys().hasOnly(['ownerWhatsApp', 'updatedAt'])
+        && data.ownerWhatsApp is string
+        && data.ownerWhatsApp.size() <= 24
+        && data.updatedAt is timestamp;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if isValidId(bookingId) && (
+        isAdmin() ||
+        (isVerifiedUser() && existing().clientUid == request.auth.uid)
+      );
+
+      allow list: if isAdmin() || (
+        isVerifiedUser() && resource.data.clientUid == request.auth.uid
+      );
+
+      allow create: if isValidId(bookingId)
+        && isValidBookingData(incoming())
+        && incoming().id == bookingId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/booking_statuses/$(bookingId))
+        && (
+          isAdmin() ||
+          (
+            incoming().status == 'pending'
+            && !('confirmationMessage' in incoming())
+            && !('confirmedAt' in incoming())
+            && (
+              (request.auth == null && incoming().clientUid == '') ||
+              (isVerifiedUser() && incoming().clientUid == request.auth.uid)
+            )
+          )
+        );
+
+      allow update: if isValidId(bookingId)
+        && isValidBookingData(incoming())
+        && incoming().id == existing().id
+        && incoming().guestId == existing().guestId
+        && incoming().clientUid == existing().clientUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isAdmin()
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'confirmationMessage', 'confirmedAt', 'updatedAt'
+            ])
+          ) ||
+          (
+            isVerifiedUser()
+            && existing().clientUid == request.auth.uid
+            && existing().status != 'cancelled'
+            && incoming().status == 'cancelled'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /booking_statuses/{bookingId} {
+      allow get: if isValidId(bookingId);
+      allow list: if false;
+
+      allow create: if isValidId(bookingId)
+        && isValidBookingStatus(incoming())
+        && incoming().bookingId == bookingId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/bookings/$(bookingId))
+        && (
+          isAdmin() ||
+          (
+            incoming().status == 'pending'
+            && !('confirmationMessage' in incoming())
+            && !('confirmedAt' in incoming())
+          )
+        );
+
+      allow update: if isValidId(bookingId)
+        && isValidBookingStatus(incoming())
+        && incoming().bookingId == existing().bookingId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isAdmin()
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'confirmationMessage', 'confirmedAt', 'updatedAt'
+            ])
+          ) ||
+          (
+            isVerifiedUser()
+            && existing().status != 'cancelled'
+            && incoming().status == 'cancelled'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+            && get(/databases/$(database)/documents/bookings/$(bookingId)).data.clientUid == request.auth.uid
+            && getAfter(/databases/$(database)/documents/bookings/$(bookingId)).data.status == 'cancelled'
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /slot_locks/{slotKey} {
+      allow get: if isValidId(slotKey);
+      allow list: if true;
+
+      allow create: if isValidId(slotKey)
+        && isValidSlotLock(incoming())
+        && incoming().status == 'active'
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/bookings/$(incoming().bookingId));
+
+      allow update: if isValidId(slotKey)
+        && isValidSlotLock(incoming())
+        && incoming().date == existing().date
+        && incoming().specialistId == existing().specialistId
+        && incoming().time == existing().time
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            existing().status == 'cancelled'
+            && incoming().status == 'active'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['bookingId', 'status', 'updatedAt'])
+            && existsAfter(/databases/$(database)/documents/bookings/$(incoming().bookingId))
+          ) ||
+          (
+            isVerifiedUser()
+            && incoming().status == 'cancelled'
+            && incoming().bookingId == existing().bookingId
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+            && get(/databases/$(database)/documents/bookings/$(existing().bookingId)).data.clientUid == request.auth.uid
+            && getAfter(/databases/$(database)/documents/bookings/$(existing().bookingId)).data.status == 'cancelled'
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /settings/{settingId} {
+      allow get: if settingId == 'salon';
+      allow list: if false;
+
+      allow create, update: if settingId == 'salon'
+        && isAdmin()
+        && isValidSalonSettings(incoming())
+        && incoming().updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && isSignedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+  }
+}
